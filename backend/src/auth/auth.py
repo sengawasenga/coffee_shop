@@ -15,8 +15,8 @@ AuthError Exception
 A standardized way to communicate auth failure modes
 '''
 class AuthError(Exception):
-    def __init__(self, error, status_code):
-        self.error = error
+    def __init__(self, exception, status_code):
+        self.exception = exception
         self.status_code = status_code
 
 
@@ -37,45 +37,66 @@ def get_token_auth_header():
 
     if not auth:
         raise AuthError({
-            'code': 'authorization_header_missing',
-            'description': 'Authorization header is expected.'
+            "success": False,
+            "error": 401,
+            "message": "Authorization header is expected"
         }, 401)
 
     parts = auth.split()
     if parts[0].lower() != 'bearer':
         raise AuthError({
-            'code': 'invalid_header',
-            'description': 'Authorization header must start with "Bearer".'
+            "success": False,
+            "error": 401,
+            "message": "Authorization header must start with 'Bearer'"
         }, 401)
 
     elif len(parts) == 1:
         raise AuthError({
-            'code': 'invalid_header',
-            'description': 'Token not found.'
+            "success": False,
+            "error": 401,
+            "message": "Token not found"
         }, 401)
 
     elif len(parts) > 2:
         raise AuthError({
-            'code': 'invalid_header',
-            'description': 'Authorization header must be bearer token.'
+            "success": False,
+            "error": 401,
+            "message": "Authorization header must be bearer token"
         }, 401)
 
     token = parts[1]
     return token
 
-'''
-@TODO implement check_permissions(permission, payload) method
-    @INPUTS
-        permission: string permission (i.e. 'post:drink')
-        payload: decoded jwt payload
+# '''
+# @TODO implement check_permissions(permission, payload) method
+#     @INPUTS
+#         permission: string permission (i.e. 'post:drink')
+#         payload: decoded jwt payload
 
-    it should raise an AuthError if permissions are not included in the payload
-        !!NOTE check your RBAC settings in Auth0
-    it should raise an AuthError if the requested permission string is not in the payload permissions array
-    return true otherwise
-'''
+#     it should raise an AuthError if permissions are not included in the payload
+#         !!NOTE check your RBAC settings in Auth0
+#     it should raise an AuthError if the requested permission string is not in the payload permissions array
+#     return true otherwise
+# '''
+
+# this code is from the course
 def check_permissions(permission, payload):
-    raise Exception('Not Implemented')
+    
+    if 'permissions' not in payload:
+        raise AuthError({
+            "success": False,
+            "error": 401,
+            "message": "Permissions must be included in the payload"
+        }, 401)
+    
+    if permission not in payload['permissions']:
+        raise AuthError({
+            "success": False,
+            "error": 403,
+            "message": "The permission is forbidden for this user"
+        }, 403)
+
+    return True
 
 
 
